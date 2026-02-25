@@ -1,0 +1,8 @@
+admin:SecurePass123!:admin@example.com
+user1:MyPassword456!:user1@example.com
+abc:abc12345:abc@ex.com
+xyz:xyz12345:xyz@ex.com
+abhishek:abhishek123:abhishek123@gmail.com
+shukla:98765421:shubham20040627@gmail.com
+mnb:45665445:abhg@gmail.com
+gfd:74125896:gfd@gmail.com

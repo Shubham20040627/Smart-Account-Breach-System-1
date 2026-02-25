@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <chrono>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <limits>
@@ -23,11 +24,14 @@ private:
 public:
     User() : failedAttempts(0), isLocked(false), lastAttemptTime(0) {}
     
-    User(string username, string password, string email) 
-        : username(username), email(email), failedAttempts(0), 
-          isLocked(false), lastAttemptTime(0) {
-        this->passwordHash = hashPassword(password);
+    User(string u, string p, string e) 
+        : username(u), email(e), failedAttempts(0), isLocked(false), lastAttemptTime(0) {
+        this->passwordHash = hashPassword(p);
     }
+    
+    // For loading from database (pre-hashed)
+    User(string u, string h, string e, bool fromFile) 
+        : username(u), passwordHash(h), email(e), failedAttempts(0), isLocked(false), lastAttemptTime(0) {}
     
     string getUsername() const { return username; }
     string getPasswordHash() const { return passwordHash; }
@@ -372,6 +376,7 @@ class AuthSystem {
 private:
     HashTable<string, User*> users;
     HashTable<string, Queue<LoginAttempt>*> loginHistory;
+    HashTable<string, bool> whitelist; // New Whitelist Structure
     HashTable<string, LinkedList<string>*> userSessions;
     
     const int MAX_FAILED_ATTEMPTS = 5;
@@ -399,7 +404,61 @@ private:
     }
     
 public:
-    AuthSystem() : users(100), loginHistory(50), userSessions(50) {
+    // Whitelist Loader (File I/O)
+    void loadWhitelist() {
+        ifstream file("access_list.txt");
+        if (!file.is_open()) {
+            cout << "⚠️ Warning: access_list.txt not found. System in open mode." << endl;
+            return;
+        }
+        string line;
+        while (getline(file, line)) {
+            // Trim whitespace
+            line.erase(0, line.find_first_not_of(" \t\n\r"));
+            line.erase(line.find_last_not_of(" \t\n\r") + 1);
+            if (!line.empty()) {
+                whitelist.insert(line, true);
+            }
+        }
+        file.close();
+        cout << "✅ Whitelist loaded: " << whitelist.getCount() << " authorized users." << endl;
+    }
+
+    void loadUserData() {
+        ifstream file("user_data.txt");
+        if (!file.is_open()) return;
+        
+        string line;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string u, p, e;
+            if (getline(ss, u, ':') && getline(ss, p, ':') && getline(ss, e)) {
+                User* newUser = new User(u, p, e); // Constructor hashes raw password
+                users.insert(u, newUser);
+                loginHistory.insert(u, new Queue<LoginAttempt>(20));
+                userSessions.insert(u, new LinkedList<string>());
+            }
+        }
+        file.close();
+        cout << "✅ Persistent user data loaded: " << users.getCount() << " total users." << endl;
+    }
+
+    void saveUserToFile(string u, string p, string e) {
+        ofstream file("user_data.txt", ios::app);
+        if (file.is_open()) {
+            file << u << ":" << p << ":" << e << endl;
+            file.close();
+        }
+    }
+
+    bool isAuthorized(string username) {
+        if (whitelist.getCount() == 0) return true; // Failsafe
+        return whitelist.find(username) != nullptr;
+    }
+
+    AuthSystem() : users(100), loginHistory(50), whitelist(50), userSessions(50) {
+        loadWhitelist(); // Load VIPs
+        loadUserData();  // Load All Registered Users
         commonPasswords = {
             "password", "123456", "qwerty", "abc123", 
             "password123", "admin", "letmein", "welcome",
@@ -432,7 +491,10 @@ public:
         loginHistory.insert(username, new Queue<LoginAttempt>(20));
         userSessions.insert(username, new LinkedList<string>());
         
-        cout << "✅ User registered successfully!" << endl;
+        // Save to file immediately
+        saveUserToFile(username, newUser->getPasswordHash(), email);
+        
+        cout << "✅ User registered successfully and saved to vault!" << endl;
         return true;
     }
     
@@ -554,6 +616,12 @@ public:
     }
     
     bool checkBreach(string username) {
+        // 1. Check Whitelist First (New Professional Layer)
+        if (!isAuthorized(username)) {
+            cout << "❌ ACCESS_DENIED: User '" << username << "' is not in the authorized access list." << endl;
+            return true; // Treat as breach/unauthorized
+        }
+
         User** userPtr = users.find(username);
         if (userPtr == nullptr) return false;
         
@@ -626,9 +694,7 @@ int main(int argc, char* argv[]) {
     string username, password, email, ip, sessionId, oldPassword, newPassword;
     int choice;
     
-    // Add demo users
-    authSystem.registerUser("admin", "SecurePass123!", "admin@example.com");
-    authSystem.registerUser("user1", "MyPassword456!", "user1@example.com");
+    // Persistent users are loaded in the AuthSystem constructor
 
     // CLI MODE: Support for Node.js integration
     if (argc > 1) {

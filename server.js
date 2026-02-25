@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 const { execSync } = require('child_process');
 
 const app = express();
@@ -58,6 +59,30 @@ const COMMON_PASSWORDS = [
 
 // ==================== HELPER FUNCTIONS ====================
 
+const loadUsers = () => {
+    const userDataPath = path.join(__dirname, 'user_data.txt');
+    if (!fs.existsSync(userDataPath)) return;
+
+    const data = fs.readFileSync(userDataPath, 'utf8');
+    data.split('\n').forEach(line => {
+        if (!line.trim()) return;
+        const [username, password, email] = line.split(':');
+        if (!username || !password) return;
+
+        // The file now has plaintext passwords
+        const newUser = new User(username, password, email);
+        users.set(username, newUser);
+        loginHistory.set(username, []);
+        userSessions.set(username, new Set());
+    });
+    console.log(`[Persistence] Loaded ${users.size} users from user_data.txt`);
+};
+
+const saveUserToFile = (username, password, email) => {
+    const line = `${username}:${password}:${email}\n`;
+    fs.appendFileSync(path.join(__dirname, 'user_data.txt'), line);
+};
+
 const isCommonPassword = (password) => COMMON_PASSWORDS.includes(password);
 
 const checkBreach = (username) => {
@@ -75,8 +100,8 @@ const checkBreach = (username) => {
         const exePath = path.join(__dirname, 'security_engine.exe');
         const output = execSync(`"${exePath}" --check-breach ${username}`).toString().trim();
 
-        console.log(`[C++ Bridge] Engine Response: ${output}`);
-        return output === "BREACH_DETECTED";
+        console.log(`[C++ Bridge] Engine Response Raw: ${output}`);
+        return output.includes("BREACH_DETECTED");
     } catch (err) {
         console.error("[C++ Bridge] Error calling engine:", err.message);
         return false; // Fallback to safe
@@ -100,12 +125,16 @@ app.post('/api/register', (req, res) => {
         return res.status(400).json({ success: false, message: "This password is too common!" });
     }
 
-    const newUser = new User(username, password, email);
-    users.set(username, newUser);
-    loginHistory.set(username, []);
-    userSessions.set(username, new Set());
+    saveUserToFile(username, password, email);
 
-    res.json({ success: true, message: "User registered successfully!" });
+    const newUser = users.get(username) || new User(username, password, email);
+    if (!users.has(username)) {
+        users.set(username, newUser);
+        loginHistory.set(username, []);
+        userSessions.set(username, new Set());
+    }
+
+    res.json({ success: true, message: "User registered successfully and saved to vault!" });
 });
 
 app.post('/api/login', (req, res) => {
@@ -221,13 +250,69 @@ app.post('/api/unlock', (req, res) => {
     }
 });
 
-// Seed data
-users.set("admin", new User("admin", "SecurePass123!", "admin@example.com"));
-users.set("user1", new User("user1", "MyPassword456!", "user1@example.com"));
-loginHistory.set("admin", []);
-loginHistory.set("user1", []);
-userSessions.set("admin", new Set());
-userSessions.set("user1", new Set());
+// ==================== UNLOCK REQUESTS ====================
+
+app.post('/api/request-unlock', (req, res) => {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ success: false, message: "Username required" });
+
+    const requestFile = path.join(__dirname, 'unlock_requests.txt');
+    const timestamp = new Date().toLocaleString();
+    const line = `${username}:${timestamp}:pending\n`;
+
+    fs.appendFileSync(requestFile, line);
+    res.json({ success: true, message: "Unlock request submitted to Administrator." });
+});
+
+app.get('/api/unlock-requests', (req, res) => {
+    const requestFile = path.join(__dirname, 'unlock_requests.txt');
+    if (!fs.existsSync(requestFile)) return res.json([]);
+
+    const data = fs.readFileSync(requestFile, 'utf8');
+    const requests = data.split('\n')
+        .filter(line => line.trim() && !line.startsWith('#'))
+        .map(line => {
+            const [username, timestamp, status] = line.split(':');
+            return { username, timestamp, status };
+        });
+    res.json(requests);
+});
+
+app.post('/api/handle-unlock-request', (req, res) => {
+    const { username, action } = req.body; // action: approve/deny
+    const requestFile = path.join(__dirname, 'unlock_requests.txt');
+
+    if (!fs.existsSync(requestFile)) return res.status(404).json({ success: false, message: "No requests found" });
+
+    let data = fs.readFileSync(requestFile, 'utf8');
+    let lines = data.split('\n');
+    let updated = false;
+
+    const newLines = lines.map(line => {
+        if (line.includes(`${username}:`) && line.includes(':pending')) {
+            updated = true;
+            return `${username}:${new Date().toLocaleString()}:${action === 'approve' ? 'approved' : 'denied'}`;
+        }
+        return line;
+    });
+
+    if (updated) {
+        fs.writeFileSync(requestFile, newLines.join('\n'));
+        if (action === 'approve') {
+            const user = users.get(username);
+            if (user) {
+                user.isLocked = false;
+                user.failedAttempts = 0;
+            }
+        }
+        res.json({ success: true, message: `Request ${action}d successfully.` });
+    } else {
+        res.status(404).json({ success: false, message: "Pending request not found." });
+    }
+});
+
+// Initial Load
+loadUsers();
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

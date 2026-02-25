@@ -13,135 +13,197 @@
 </head>
 
 <body class="dark-theme">
-    <div id="app">
-        <header>
-            <div class="logo">
-                <i data-feather="shield" class="icon-primary"></i>
-                <h1>Secure <span>SOC v1.0</span></h1>
+    <div id="auth-gate" class="gate-container">
+        <div class="gate-card">
+            <div class="gate-header">
+                <i data-feather="shield" class="icon-primary main-logo"></i>
+                <h1>Secure <span>Portal v1.0</span></h1>
+                <p>Identity Verification Required</p>
             </div>
-            <div class="status-bar">
-                <div class="status-item">
-                    <span class="label">System:</span>
-                    <span class="value success">Active</span>
-                </div>
-                <div class="status-item">
-                    <span class="label">Breach Defenses:</span>
-                    <span class="value primary">Normal</span>
-                </div>
+
+            <div class="gate-tabs">
+                <button class="tab-btn active" onclick="switchGate('login')">Matrix Login</button>
+                <button class="tab-btn" onclick="switchGate('register')">New Identity</button>
             </div>
-        </header>
 
-        <main>
-            <aside class="sidebar">
-                <nav>
-                    <button class="nav-item active" onclick="showSection('dashboard')">
-                        <i data-feather="grid"></i> Dashboard
-                    </button>
-                    <button class="nav-item" onclick="showSection('users')">
-                        <i data-feather="users"></i> User Registry
-                    </button>
-                    <button class="nav-item" onclick="showSection('auth')">
-                        <i data-feather="key"></i> Auth Console
-                    </button>
-                </nav>
-            </aside>
+            <div id="gate-login-form">
+                <form id="login-form-gate">
+                    <div class="field">
+                        <label><i data-feather="user"></i> Username</label>
+                        <input type="text" id="log-username-gate" placeholder="System ID" required>
+                    </div>
+                    <div class="field">
+                        <label><i data-feather="lock"></i> Password</label>
+                        <input type="password" id="log-password-gate" placeholder="Security Token" required>
+                    </div>
+                    <button type="submit" class="btn-primary glow-btn">EXECUTE ACCESS</button>
+                </form>
+            </div>
 
-            <section id="content">
-                <!-- Dashboard Section -->
-                <div id="section-dashboard" class="panel">
-                    <div class="panel-header">
-                        <h2><i data-feather="activity"></i> Security Overview</h2>
+            <div id="gate-register-form" class="hidden">
+                <form id="register-form-gate">
+                    <div class="field">
+                        <label>Username</label>
+                        <input type="text" id="reg-username-gate" required>
                     </div>
-                    <div class="grid-stats">
-                        <div class="stat-card">
-                            <span class="stat-label">Total Users</span>
-                            <span class="stat-value" id="stat-users">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-label">Locked Accounts</span>
-                            <span class="stat-value warning" id="stat-locked">0</span>
-                        </div>
-                        <div class="stat-card alert-card" id="breach-alert-card">
-                            <span class="stat-label">Threat Level</span>
-                            <span class="stat-value" id="stat-threat">CLEAN</span>
-                        </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input type="email" id="reg-email-gate" required>
                     </div>
-                    <div class="live-feed">
-                        <h3><i data-feather="terminal"></i> Live Security Events</h3>
-                        <div id="event-log" class="console">
-                            <div class="log-entry system">Initializing security protocols...</div>
-                            <div class="log-entry system">SOC Dashboard activated.</div>
-                        </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input type="password" id="reg-password-gate" required>
                     </div>
-                </div>
+                    <button type="submit" class="btn-accent">INITIALIZE PROTOCOL</button>
+                </form>
+            </div>
 
-                <!-- Users Section -->
-                <div id="section-users" class="panel hidden">
-                    <div class="panel-header">
-                        <h2><i data-feather="users"></i> Registered Users (HashTable)</h2>
-                    </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Failed Attempts</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-table-body">
-                            <!-- Rows injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Auth Section -->
-                <div id="section-auth" class="panel hidden">
-                    <div class="panel-header">
-                        <h2><i data-feather="lock"></i> Authentication Console</h2>
-                    </div>
-                    <div class="auth-forms">
-                        <div class="form-container">
-                            <h3>Register New User</h3>
-                            <form id="register-form">
-                                <div class="field">
-                                    <label>Username</label>
-                                    <input type="text" id="reg-username" required>
-                                </div>
-                                <div class="field">
-                                    <label>Email</label>
-                                    <input type="email" id="reg-email" required>
-                                </div>
-                                <div class="field">
-                                    <label>Password</label>
-                                    <input type="password" id="reg-password" required>
-                                </div>
-                                <button type="submit" class="btn-primary">Initialize User</button>
-                            </form>
-                        </div>
-                        <div class="form-divider"></div>
-                        <div class="form-container">
-                            <h3>Secure Login</h3>
-                            <form id="login-form">
-                                <div class="field">
-                                    <label>Username</label>
-                                    <input type="text" id="log-username" required>
-                                </div>
-                                <div class="field">
-                                    <label>Password</label>
-                                    <input type="password" id="log-password" required>
-                                </div>
-                                <button type="submit" class="btn-accent">Matrix Login</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <div id="notification-area"></div>
+            <div class="gate-footer">
+                <small>Powered by C++ Security Engine</small>
+            </div>
+        </div>
     </div>
+
+    <!-- Processing Gate (The WOW Factor) -->
+    <div id="processing-gate" class="gate-container hidden">
+        <div class="handshake-card">
+            <div class="scanner-line"></div>
+            <div class="handshake-content">
+                <i data-feather="cpu" class="icon-primary pulse-icon"></i>
+                <h2>C++ SECURITY HANDSHAKE</h2>
+                <div class="progress-container">
+                    <div id="handshake-progress" class="progress-bar"></div>
+                </div>
+                <div id="handshake-status" class="status-text">INITIALIZING DSA BUFFERS...</div>
+                <div class="bit-scroller" id="bit-scroller"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-root" class="hidden">
+        <div id="app">
+            <header>
+                <div class="logo">
+                    <i data-feather="shield" class="icon-primary"></i>
+                    <h1>Secure <span>SOC v1.0</span></h1>
+                </div>
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="label">System:</span>
+                        <span class="value success">Active</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Breach Defenses:</span>
+                        <span class="value primary">Normal</span>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <aside class="sidebar">
+                    <nav>
+                        <button class="nav-item active" onclick="showSection('dashboard')">
+                            <i data-feather="grid"></i> Dashboard
+                        </button>
+                        <button class="nav-item admin-only hidden" onclick="showSection('users')">
+                            <i data-feather="users"></i> User Registry
+                        </button>
+                        <button class="nav-item admin-only hidden" onclick="showSection('requests')">
+                            <i data-feather="bell"></i> Unlock Requests
+                        </button>
+                    </nav>
+                    <div class="sidebar-footer">
+                        <button class="nav-item logout-btn" onclick="handleLogout()">
+                            <i data-feather="log-out"></i> System Exit
+                        </button>
+                    </div>
+                </aside>
+
+                <section id="content">
+                    <!-- Dashboard Section -->
+                    <div id="section-dashboard" class="panel">
+                        <div class="dashboard-hero">
+                            <div class="hero-stats">
+                                <h3><i data-feather="terminal"></i> GLOBAL COMMAND CENTER</h3>
+                                <p>C++ Real-Time Security Engine is monitoring all nodes. Secure encryption keys and DSA
+                                    buffers are active.</p>
+                            </div>
+                            <div class="hero-visual">
+                                <i data-feather="cpu"></i>
+                            </div>
+                        </div>
+
+                        <div class="grid-stats">
+                            <div class="stat-card">
+                                <span class="stat-label">Total Users</span>
+                                <span class="stat-value" id="stat-users">0</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Locked Accounts</span>
+                                <span class="stat-value warning" id="stat-locked">0</span>
+                            </div>
+                            <div class="stat-card alert-card" id="breach-alert-card">
+                                <span class="stat-label">Threat Level</span>
+                                <span class="stat-value" id="stat-threat">CLEAN</span>
+                            </div>
+                        </div>
+                        <div class="live-feed">
+                            <h3><i data-feather="terminal"></i> Live Security Events</h3>
+                            <div id="event-log" class="console">
+                                <div class="log-entry system">Initializing security protocols...</div>
+                                <div class="log-entry system">SOC Dashboard activated.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Section -->
+                    <div id="section-users" class="panel hidden">
+                        <div class="panel-header">
+                            <h2><i data-feather="users"></i> Registered Users (HashTable)</h2>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Failed Attempts</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                                <!-- Rows injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Unlock Requests Section (Admin Only) -->
+                    <div id="section-requests" class="panel hidden">
+                        <div class="panel-header">
+                            <h2><i data-feather="bell"></i> System Access Requests</h2>
+                        </div>
+                        <div class="requests-view">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Timestamp</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="request-table-body">
+                                    <!-- Requests will be injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+        </div>
+    </div>
+    <div id="notification-area"></div>
     <script src="app.js"></script>
     <script>
         feather.replace();

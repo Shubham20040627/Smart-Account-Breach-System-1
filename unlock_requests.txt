@@ -1,0 +1,4 @@
+# System Unlock Requests Vault
+# Format: username:timestamp:status (pending/approved/denied)
+mnb:25/2/2026, 1:41:42 pm:pending
+gfd:25/2/2026, 1:46:16 pm:pending
