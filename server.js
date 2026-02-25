@@ -14,6 +14,11 @@ app.use(morgan('dev'));
 // Static files for frontend
 app.use(express.static(path.join(__dirname)));
 
+// Home route - serves the dashboard
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // ==================== SIMULATED DSA STRUCTURES ====================
 // These mirror the logic in the C++ templates
 
