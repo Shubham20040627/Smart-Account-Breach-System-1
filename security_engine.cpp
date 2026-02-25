@@ -621,21 +621,41 @@ void displayMenu() {
 }
 
 // ==================== MAIN FUNCTION ====================
-int main() {
+int main(int argc, char* argv[]) {
     AuthSystem authSystem;
     string username, password, email, ip, sessionId, oldPassword, newPassword;
     int choice;
     
+    // Add demo users
+    authSystem.registerUser("admin", "SecurePass123!", "admin@example.com");
+    authSystem.registerUser("user1", "MyPassword456!", "user1@example.com");
+
+    // CLI MODE: Support for Node.js integration
+    if (argc > 1) {
+        string flag = argv[1];
+        if (flag == "--version") {
+            cout << "1.0.0" << endl;
+            return 0;
+        }
+        if (flag == "--check-breach" && argc > 2) {
+            string checkUser = argv[2];
+            if (authSystem.checkBreach(checkUser)) {
+                cout << "BREACH_DETECTED" << endl;
+            } else {
+                cout << "STATUS_SECURE" << endl;
+            }
+            return 0;
+        }
+        return 1;
+    }
+
+    // CONSOLE MODE: Interactive menu
+    clearScreen();
     cout << "╔════════════════════════════════════════════════╗" << endl;
     cout << "║   WELCOME TO BREACH PROTECTION SYSTEM v1.0    ║" << endl;
     cout << "║     Protecting your accounts since 2024        ║" << endl;
     cout << "╚════════════════════════════════════════════════╝" << endl;
     cout << "Initializing security protocols..." << endl;
-    
-    // Add demo users
-    cout << "\n📝 Creating demo accounts..." << endl;
-    authSystem.registerUser("admin", "SecurePass123!", "admin@example.com");
-    authSystem.registerUser("user1", "MyPassword456!", "user1@example.com");
     cout << "✅ Demo accounts created!" << endl;
     
     while (true) {

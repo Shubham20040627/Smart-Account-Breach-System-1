@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const crypto = require('crypto');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -60,13 +61,26 @@ const COMMON_PASSWORDS = [
 const isCommonPassword = (password) => COMMON_PASSWORDS.includes(password);
 
 const checkBreach = (username) => {
+    // 1. Internal JS Logic (Fast check)
     const user = users.get(username);
     if (!user) return false;
 
     const history = loginHistory.get(username) || [];
     if (user.failedAttempts > 3) return true;
     if (history.length > 5) return true;
-    return false;
+
+    // 2. Call EXTERNAL C++ Engine (Deep DSA Security Analysis)
+    try {
+        console.log(`[C++ Bridge] Calling security_engine.exe for user: ${username}`);
+        const exePath = path.join(__dirname, 'security_engine.exe');
+        const output = execSync(`"${exePath}" --check-breach ${username}`).toString().trim();
+
+        console.log(`[C++ Bridge] Engine Response: ${output}`);
+        return output === "BREACH_DETECTED";
+    } catch (err) {
+        console.error("[C++ Bridge] Error calling engine:", err.message);
+        return false; // Fallback to safe
+    }
 };
 
 // ==================== API ROUTES ====================
