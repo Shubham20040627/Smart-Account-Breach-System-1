@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Breach Protection SOC</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+
+<body class="dark-theme">
+    <div id="app">
+        <header>
+            <div class="logo">
+                <i data-feather="shield" class="icon-primary"></i>
+                <h1>Secure <span>SOC v1.0</span></h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="label">System:</span>
+                    <span class="value success">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Breach Defenses:</span>
+                    <span class="value primary">Normal</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <aside class="sidebar">
+                <nav>
+                    <button class="nav-item active" onclick="showSection('dashboard')">
+                        <i data-feather="grid"></i> Dashboard
+                    </button>
+                    <button class="nav-item" onclick="showSection('users')">
+                        <i data-feather="users"></i> User Registry
+                    </button>
+                    <button class="nav-item" onclick="showSection('auth')">
+                        <i data-feather="key"></i> Auth Console
+                    </button>
+                </nav>
+            </aside>
+
+            <section id="content">
+                <!-- Dashboard Section -->
+                <div id="section-dashboard" class="panel">
+                    <div class="panel-header">
+                        <h2><i data-feather="activity"></i> Security Overview</h2>
+                    </div>
+                    <div class="grid-stats">
+                        <div class="stat-card">
+                            <span class="stat-label">Total Users</span>
+                            <span class="stat-value" id="stat-users">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Locked Accounts</span>
+                            <span class="stat-value warning" id="stat-locked">0</span>
+                        </div>
+                        <div class="stat-card alert-card" id="breach-alert-card">
+                            <span class="stat-label">Threat Level</span>
+                            <span class="stat-value" id="stat-threat">CLEAN</span>
+                        </div>
+                    </div>
+                    <div class="live-feed">
+                        <h3><i data-feather="terminal"></i> Live Security Events</h3>
+                        <div id="event-log" class="console">
+                            <div class="log-entry system">Initializing security protocols...</div>
+                            <div class="log-entry system">SOC Dashboard activated.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="section-users" class="panel hidden">
+                    <div class="panel-header">
+                        <h2><i data-feather="users"></i> Registered Users (HashTable)</h2>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Failed Attempts</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Auth Section -->
+                <div id="section-auth" class="panel hidden">
+                    <div class="panel-header">
+                        <h2><i data-feather="lock"></i> Authentication Console</h2>
+                    </div>
+                    <div class="auth-forms">
+                        <div class="form-container">
+                            <h3>Register New User</h3>
+                            <form id="register-form">
+                                <div class="field">
+                                    <label>Username</label>
+                                    <input type="text" id="reg-username" required>
+                                </div>
+                                <div class="field">
+                                    <label>Email</label>
+                                    <input type="email" id="reg-email" required>
+                                </div>
+                                <div class="field">
+                                    <label>Password</label>
+                                    <input type="password" id="reg-password" required>
+                                </div>
+                                <button type="submit" class="btn-primary">Initialize User</button>
+                            </form>
+                        </div>
+                        <div class="form-divider"></div>
+                        <div class="form-container">
+                            <h3>Secure Login</h3>
+                            <form id="login-form">
+                                <div class="field">
+                                    <label>Username</label>
+                                    <input type="text" id="log-username" required>
+                                </div>
+                                <div class="field">
+                                    <label>Password</label>
+                                    <input type="password" id="log-password" required>
+                                </div>
+                                <button type="submit" class="btn-accent">Matrix Login</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="notification-area"></div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+
+</html>

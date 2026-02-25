@@ -1,0 +1,6 @@
+node_modules/
+.env
+package-lock.json
+*.exe
+*.o
+security_engine
